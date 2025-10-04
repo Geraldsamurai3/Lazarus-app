@@ -13,34 +13,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { useLanguage } from "@/contexts/language-context"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { ConnectionStatus } from "@/components/ui/connection-status"
 import Link from "next/link"
 
-// Define the login form schema with validation rules
-const loginSchema = z.object({
+// Define the register form schema with validation rules
+const registerSchema = z.object({
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string().email("Correo electrónico inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres")
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  confirmPassword: z.string().min(6, "Confirma tu contraseña")
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
 })
 
-type LoginFormValues = z.infer<typeof loginSchema>
+type RegisterFormValues = z.infer<typeof registerSchema>
 
-export function LoginForm() {
-  const { t } = useLanguage()
-  const { login, isAuthenticated } = useAuth()
+export function RegisterForm() {
+  const { register, isAuthenticated } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
 
   // Initialize form with react-hook-form and zod validation
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
+      name: "",
       email: "",
-      password: ""
+      password: "",
+      confirmPassword: ""
     },
   })
 
@@ -52,46 +58,61 @@ export function LoginForm() {
   }, [isAuthenticated, router])
 
   // Form submission handler
-  const onSubmit = async (data: LoginFormValues) => {
+  const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true)
     setAuthError(null)
 
     try {
-      // Call login from auth context (without role)
-      const user = await login(data.email, data.password)
+      // Call register from auth context - backend assigns role automatically
+      const user = await register({
+        nombre: data.name,
+        email: data.email,
+        contraseña: data.password
+      })
       
       if (user) {
         toast({
-          title: "¡Bienvenido!",
-          description: `Hola ${user.name}, has iniciado sesión correctamente.`,
+          title: "¡Registro exitoso!",
+          description: `¡Bienvenido ${user.name}! Tu cuenta ha sido creada exitosamente.`,
           variant: "default",
         })
         
-        // Redirect to dashboard after successful login
-        router.push("/dashboard")
+        // Redirect to login page after successful registration
+        router.push("/login")
       } else {
-        setAuthError("Credenciales inválidas")
+        setAuthError("Error durante el registro")
       }
     } catch (error) {
-      console.error("Login error:", error)
-      setAuthError(
-        error instanceof Error 
-          ? error.message 
-          : "Error durante el inicio de sesión"
-      )
+      console.error("Register error:", error)
+      
+      let errorMessage = "Error durante el registro"
+      
+      if (error instanceof Error) {
+        errorMessage = error.message
+        
+        // Add helpful context for common errors
+        if (error.message.includes("base de datos")) {
+          errorMessage += " Revisa la página de diagnóstico para más detalles."
+        } else if (error.message.includes("servidor")) {
+          errorMessage += " El backend puede no estar funcionando correctamente."
+        }
+      }
+      
+      setAuthError(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword)
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-lg border border-border/40">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Lazarus</CardTitle>
-          <CardDescription>Iniciar Sesión</CardDescription>
+          <CardDescription>Crear Nueva Cuenta</CardDescription>
           <div className="flex justify-center mt-4">
             <ConnectionStatus />
           </div>
@@ -99,6 +120,26 @@ export function LoginForm() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre Completo</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        placeholder="Juan Pérez"
+                        autoComplete="name"
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="email"
@@ -109,7 +150,7 @@ export function LoginForm() {
                       <Input
                         {...field}
                         type="email"
-                        placeholder="usuario@lazarus.com"
+                        placeholder="usuario@ejemplo.com"
                         autoComplete="email"
                         disabled={isLoading}
                       />
@@ -118,6 +159,8 @@ export function LoginForm() {
                   </FormItem>
                 )}
               />
+
+
 
               <FormField
                 control={form.control}
@@ -131,7 +174,7 @@ export function LoginForm() {
                           {...field}
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          autoComplete="current-password"
+                          autoComplete="new-password"
                           disabled={isLoading}
                         />
                         <Button
@@ -158,6 +201,45 @@ export function LoginForm() {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmar Contraseña</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          autoComplete="new-password"
+                          disabled={isLoading}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-1 hover:bg-transparent"
+                          onClick={toggleConfirmPasswordVisibility}
+                          disabled={isLoading}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                          </span>
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {authError && (
                 <Alert variant="destructive">
                   <AlertDescription>{authError}</AlertDescription>
@@ -168,10 +250,10 @@ export function LoginForm() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Iniciando sesión...
+                    Creando cuenta...
                   </>
                 ) : (
-                  "Iniciar Sesión"
+                  "Crear Cuenta"
                 )}
               </Button>
             </form>
@@ -179,13 +261,13 @@ export function LoginForm() {
 
           <div className="mt-6 pt-4 border-t border-border/30 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
-              ¿No tienes una cuenta?{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                Regístrate aquí
+              ¿Ya tienes una cuenta?{" "}
+              <Link href="/login" className="text-primary hover:underline">
+                Inicia sesión aquí
               </Link>
             </p>
             <p className="text-xs text-muted-foreground">
-              ¿Problemas de conexión?{" "}
+              ¿Problemas para registrarse?{" "}
               <Link href="/debug" className="text-primary hover:underline">
                 Diagnóstico del sistema
               </Link>

@@ -9,6 +9,7 @@ import { AlertTriangle, Map, FileText, Users, CheckCircle, Clock } from "lucide-
 import Link from "next/link"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { IncidentLists } from "@/components/dashboard/incident-lists"
+import { LogoutButton } from "@/components/ui/logout-button"
 
 function DashboardContent() {
   const { t } = useLanguage()
@@ -18,18 +19,23 @@ function DashboardContent() {
   if (!user) return null
 
   const userIncidents = incidents.filter((i) => i.userId === user.id)
-  const pendingIncidents = incidents.filter((i) => i.status === "pending" || i.status === "in-progress")
+  const pendingIncidents = incidents.filter((i) => i.status === "in_progress")
   const resolvedIncidents = incidents.filter((i) => i.status === "resolved")
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
-            {t("dashboard.welcome")}, {user.name}
-          </h1>
-          <p className="text-muted-foreground mt-2">{t("dashboard.controlPanel")}</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              {t("dashboard.welcome")}, {user.name}
+            </h1>
+            <p className="text-muted-foreground mt-2">{t("dashboard.controlPanel")}</p>
+          </div>
+          <div className="flex gap-2">
+            <LogoutButton size="sm" />
+          </div>
         </div>
 
         {/* Stats Cards */}
