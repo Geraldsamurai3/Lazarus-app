@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { getCurrentUser, logout } from "@/lib/auth"
 import { useAuth } from "@/contexts/auth-context"
 import { useLanguage } from "@/contexts/language-context"
 import { Menu, User, LogOut, Map, FileText, Settings, Home, Info, LogIn } from "lucide-react"
@@ -14,8 +13,7 @@ import { Menu, User, LogOut, Map, FileText, Settings, Home, Info, LogIn } from "
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
-  const user = getCurrentUser()
-  const { isAuthenticated } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth()
   const { t } = useLanguage()
 
   const handleLogout = () => {
