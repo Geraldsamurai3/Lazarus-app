@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -63,7 +63,7 @@ export function LoginForm() {
       if (user) {
         toast({
           title: "¡Bienvenido!",
-          description: `Hola ${user.name}, has iniciado sesión correctamente.`,
+          description: `Hola ${user.nombre || user.email}, has iniciado sesión correctamente.`,
           variant: "default",
         })
         
@@ -88,6 +88,17 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      {/* Botón de Volver */}
+      <Link 
+        href="/"
+        className="fixed top-4 left-4 z-10 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+      >
+        <div className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center group-hover:border-primary transition-colors shadow-sm">
+          <ArrowLeft className="w-5 h-5" />
+        </div>
+        <span className="hidden sm:inline font-medium">Volver al inicio</span>
+      </Link>
+
       <Card className="w-full max-w-md shadow-lg border border-border/40">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Lazarus</CardTitle>

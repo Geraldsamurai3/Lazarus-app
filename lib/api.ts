@@ -1,7 +1,7 @@
-import { getToken, isTokenExpired, logout } from './auth'
+import { getToken, isTokenExpired, logout } from './services/auth.service'
 
-// API base URL from environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+// API base URL from environment - apunta al backend NestJS
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
 /**
  * Generic API request function with authentication and error handling

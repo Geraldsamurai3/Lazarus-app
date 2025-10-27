@@ -184,6 +184,8 @@ function generateMockJwt(user: User): string {
  * Parse a JWT token to extract the payload
  */
 function parseJwt(token: string): JwtPayload | null {
+  if (typeof window === "undefined") return null
+  
   try {
     // Split the token into parts
     const base64Url = token.split('.')[1]
@@ -210,9 +212,25 @@ function parseJwt(token: string): JwtPayload | null {
  * Removes auth token and user data from storage
  */
 export function logout(): void {
+  if (typeof window === "undefined") return
+  
+  // Obtener usuario actual antes de limpiar
+  const currentUser = getCurrentUser()
+  
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
   localStorage.removeItem(TOKEN_EXPIRY_KEY)
+  
+  // Limpiar ubicación guardada del usuario actual al cerrar sesión
+  if (currentUser) {
+    localStorage.removeItem(`userLocation_${currentUser.email}`)
+    localStorage.removeItem(`useProximityFilter_${currentUser.email}`)
+    localStorage.removeItem(`autoLocation_${currentUser.email}`)
+  }
+  
+  // Limpiar ubicaciones antiguas (compatibilidad hacia atrás)
+  localStorage.removeItem("userLocation")
+  localStorage.removeItem("useProximityFilter")
 }
 
 /**
@@ -264,6 +282,8 @@ export function getCurrentUser(): User | null {
  * Checks if the user is authenticated by verifying token existence and validity
  */
 export function isAuthenticated(): boolean {
+  if (typeof window === "undefined") return false
+  
   if (isTokenExpired()) {
     logout()
     return false

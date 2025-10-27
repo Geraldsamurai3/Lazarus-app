@@ -14,7 +14,7 @@ import {
 import { MapPin, Navigation, AlertTriangle, X, Loader2 } from "lucide-react"
 
 interface LocationPermissionProps {
-  onLocationGranted: (location: UserLocation) => void
+  onLocationGranted: (location: UserLocation, savePreference?: boolean) => void
   onLocationDenied: () => void
 }
 
@@ -22,7 +22,7 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleRequestLocation = async () => {
+  const handleRequestLocation = async (savePreference: boolean = false) => {
     setIsLoading(true)
     setError(null)
 
@@ -32,7 +32,7 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
       }
 
       const location = await getCurrentLocation()
-      onLocationGranted(location)
+      onLocationGranted(location, savePreference)
     } catch (err) {
       const error = err as GeolocationError
       let errorMessage = "No se pudo obtener tu ubicación"
@@ -59,7 +59,7 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
 
   const handleUseSimulatedLocation = () => {
     const simulatedLocation = getSimulatedLocation()
-    onLocationGranted(simulatedLocation)
+    onLocationGranted(simulatedLocation, false)
   }
 
   const handleDismiss = () => {
@@ -67,8 +67,8 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9999]">
+      <Card className="w-full max-w-md border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 shadow-2xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -121,7 +121,11 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
           </div>
 
           <div className="flex flex-col gap-2 pt-2">
-            <Button onClick={handleRequestLocation} disabled={isLoading} className="w-full">
+            <Button 
+              onClick={() => handleRequestLocation(true)} 
+              disabled={isLoading} 
+              className="w-full"
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -130,10 +134,38 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
               ) : (
                 <>
                   <Navigation className="w-4 h-4 mr-2" />
-                  Permitir Ubicación
+                  Permitir Siempre
                 </>
               )}
             </Button>
+
+            <Button 
+              onClick={() => handleRequestLocation(false)} 
+              disabled={isLoading} 
+              variant="secondary"
+              className="w-full"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Permitir Solo Esta Vez
+            </Button>
+
+            <Button 
+              variant="outline" 
+              onClick={handleDismiss}
+              disabled={isLoading}
+              className="w-full"
+            >
+              No Permitir
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-blue-50 dark:bg-blue-950 px-2 text-muted-foreground">O</span>
+              </div>
+            </div>
 
             <Button variant="outline" onClick={handleUseSimulatedLocation} className="w-full bg-transparent">
               <MapPin className="w-4 h-4 mr-2" />

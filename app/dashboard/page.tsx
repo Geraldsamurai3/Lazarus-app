@@ -2,10 +2,11 @@
 import { Navbar } from "@/components/layout/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { getIncidents } from "@/lib/storage"
+import { useIncidents } from "@/hooks/use-incidents"
 import { useLanguage } from "@/contexts/language-context"
 import { useAuth } from "@/contexts/auth-context"
-import { AlertTriangle, Map, FileText, Users, CheckCircle, Clock } from "lucide-react"
+import { EstadoIncidente, UserType } from "@/lib/types"
+import { AlertTriangle, Map, FileText, Users, CheckCircle, Clock, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { IncidentLists } from "@/components/dashboard/incident-lists"
@@ -14,22 +15,50 @@ import { LogoutButton } from "@/components/ui/logout-button"
 function DashboardContent() {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const incidents = getIncidents()
+  const { incidents, loading, error, refreshIncidents } = useIncidents()
 
   if (!user) return null
-
-  const userIncidents = incidents.filter((i) => i.userId === user.id)
-  const pendingIncidents = incidents.filter((i) => i.status === "in_progress")
-  const resolvedIncidents = incidents.filter((i) => i.status === "resolved")
+  
+  // Filter incidents based on user type
+  let userIncidents = incidents
+  
+  // For CIUDADANO, only show their own incidents
+  if (user.userType === UserType.CIUDADANO && user.id_ciudadano) {
+    userIncidents = incidents.filter((i) => i.ciudadano_id === user.id_ciudadano)
+  }
+  // For ENTIDAD and ADMIN, show all incidents
+  
+  const pendingIncidents = userIncidents.filter((i) => 
+    i.estado === EstadoIncidente.PENDIENTE || i.estado === EstadoIncidente.EN_PROCESO
+  )
+  const resolvedIncidents = userIncidents.filter((i) => 
+    i.estado === EstadoIncidente.RESUELTO
+  )
+  
+  const handleRefresh = () => {
+    refreshIncidents()
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {loading && (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-destructive/10 text-destructive p-4 rounded-md mb-4">
+            Error al cargar incidentes: {error}
+          </div>
+        )}
+        
         <div className="mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {t("dashboard.welcome")}, {user.name}
+              {t("dashboard.welcome")}, {user.nombre || user.email}
             </h1>
             <p className="text-muted-foreground mt-2">{t("dashboard.controlPanel")}</p>
           </div>
@@ -79,7 +108,7 @@ function DashboardContent() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{new Set(incidents.map((i) => i.userId)).size}</div>
+              <div className="text-2xl font-bold">{new Set(userIncidents.map((i) => i.ciudadano_id)).size}</div>
               <p className="text-xs text-muted-foreground">{t("dashboard.reportingIncidents")}</p>
             </CardContent>
           </Card>
@@ -109,7 +138,11 @@ function DashboardContent() {
           </Card>
         </div>
 
-        <IncidentLists />
+        <IncidentLists 
+          pendingIncidents={pendingIncidents}
+          resolvedIncidents={resolvedIncidents}
+          onStatusChange={handleRefresh}
+        />
       </main>
     </div>
   )
