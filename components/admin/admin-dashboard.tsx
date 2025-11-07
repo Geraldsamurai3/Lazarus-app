@@ -10,10 +10,12 @@ import {
   AlertTriangle, 
   Bell, 
   BarChart3,
+  TrendingUp,
   Loader2
 } from "lucide-react"
 import { Navbar } from "@/components/layout/navbar"
 import { AdminStats } from "./admin-stats"
+import { AdminStatistics } from "./admin-statistics"
 import { UserManagement } from "./user-management"
 import { IncidentManagement } from "./incident-management"
 import { NotificationManagement } from "./notification-management"
@@ -59,10 +61,14 @@ export function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
             <TabsTrigger value="dashboard" className="gap-2">
               <BarChart3 className="w-4 h-4" />
               <span>Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="statistics" className="gap-2">
+              <TrendingUp className="w-4 h-4" />
+              <span>Estadísticas</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
@@ -80,6 +86,10 @@ export function AdminDashboard() {
 
           <TabsContent value="dashboard" className="mt-0">
             <AdminStats />
+          </TabsContent>
+
+          <TabsContent value="statistics" className="mt-0">
+            <AdminStatistics />
           </TabsContent>
 
           <TabsContent value="users" className="mt-0">

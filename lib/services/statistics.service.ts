@@ -110,7 +110,13 @@ export async function getIncidentTrends(days: number = 30): Promise<IncidentTren
     return trends
   } catch (error) {
     console.error('❌ Error al obtener tendencias:', error)
-    throw error
+    // Devolver estructura por defecto en caso de error
+    return {
+      period: `${days} días`,
+      total: 0,
+      promedioDiario: 0,
+      porDia: []
+    }
   }
 }
 
@@ -128,7 +134,11 @@ export async function getIncidentsByLocation(): Promise<LocationStats> {
     return stats
   } catch (error) {
     console.error('❌ Error al obtener estadísticas por ubicación:', error)
-    throw error
+    // Devolver estructura por defecto en caso de error
+    return {
+      porProvincia: {},
+      porCanton: {}
+    }
   }
 }
 
