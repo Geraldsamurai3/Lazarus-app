@@ -15,13 +15,12 @@ import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts/language-context"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { ConnectionStatus } from "@/components/ui/connection-status"
 import Link from "next/link"
 
 // Define the login form schema with validation rules
 const loginSchema = z.object({
   email: z.string().email("Correo electrónico inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres")
+  password: z.string()
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
@@ -103,9 +102,6 @@ export function LoginForm() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Lazarus</CardTitle>
           <CardDescription>Iniciar Sesión</CardDescription>
-          <div className="flex justify-center mt-4">
-            <ConnectionStatus />
-          </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -188,17 +184,18 @@ export function LoginForm() {
             </form>
           </Form>
 
-          <div className="mt-6 pt-4 border-t border-border/30 text-center space-y-2">
+          {/* Link de "Olvidé mi contraseña" */}
+          <div className="mt-4 text-center">
+            <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-border/30 text-center">
             <p className="text-sm text-muted-foreground">
               ¿No tienes una cuenta?{" "}
               <Link href="/register" className="text-primary hover:underline">
                 Regístrate aquí
-              </Link>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              ¿Problemas de conexión?{" "}
-              <Link href="/debug" className="text-primary hover:underline">
-                Diagnóstico del sistema
               </Link>
             </p>
           </div>

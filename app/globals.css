@@ -283,3 +283,15 @@
   z-index: 999 !important;
 }
 
+/* Estilos para el mapa en el diálogo */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+

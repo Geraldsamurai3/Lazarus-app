@@ -8,12 +8,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useLanguage } from "@/contexts/language-context"
+import { UserType } from "@/lib/types"
 import { Menu, User, LogOut, Map, FileText, Settings, Home, Info, LogIn } from "lucide-react"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, isAdmin } = useAuth()
   const { t } = useLanguage()
 
   const handleLogout = () => {
@@ -82,12 +83,18 @@ export function Navbar() {
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" aria-label={`User menu for ${user.name}`}>
+                  <Button variant="ghost" size="sm" aria-label={`Menú de usuario para ${user.nombre || user.email}`}>
                     <User className="w-4 h-4 mr-2" aria-hidden="true" />
-                    {user.name}
+                    {user.nombre || user.email}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" role="menu">
+                  <DropdownMenuItem asChild role="menuitem">
+                    <Link href="/profile">
+                      <User className="w-4 h-4 mr-2" aria-hidden="true" />
+                      Mi Perfil
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild role="menuitem">
                     <Link href="/settings">
                       <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -171,6 +178,12 @@ export function Navbar() {
                     <Button variant="ghost" className="w-full justify-start">
                       <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
                       {t("nav.report")}
+                    </Button>
+                  </Link>
+                  <Link href="/profile" role="menuitem">
+                    <Button variant="ghost" className="w-full justify-start">
+                      <User className="w-4 h-4 mr-2" aria-hidden="true" />
+                      Mi Perfil
                     </Button>
                   </Link>
                   <Link href="/settings" role="menuitem">

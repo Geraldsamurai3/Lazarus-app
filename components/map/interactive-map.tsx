@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { IncidentModal } from "@/components/map/incident-modal"
+import { IncidentDetailModal } from "@/components/map/incident-detail-modal"
 import { LocationPermission } from "@/components/map/location-permission"
 import { useLanguage } from "@/contexts/language-context"
 import { useAuth } from "@/contexts/auth-context"
@@ -43,9 +43,9 @@ const SEVERITY_MAP: Record<SeveridadIncidente, { label: string; color: string }>
 
 const STATUS_MAP: Record<EstadoIncidente, { label: string; labelEn: string; icon: any; color: string }> = {
   [EstadoIncidente.PENDIENTE]: { label: "Pendiente", labelEn: "Pending", icon: AlertCircle, color: "bg-yellow-500" },
-  [EstadoIncidente.EN_PROCESO]: { label: "En Proceso", labelEn: "In Progress", icon: Clock, color: "bg-blue-500" },
+  [EstadoIncidente.EN_PROCESO]: { label: "En progreso", labelEn: "In Progress", icon: Clock, color: "bg-blue-500" },
   [EstadoIncidente.RESUELTO]: { label: "Resuelto", labelEn: "Resolved", icon: CheckCircle, color: "bg-green-500" },
-  [EstadoIncidente.CANCELADO]: { label: "Cancelado", labelEn: "Cancelled", icon: AlertCircle, color: "bg-gray-500" },
+  [EstadoIncidente.CANCELADO]: { label: "Falso", labelEn: "False", icon: AlertCircle, color: "bg-gray-500" },
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -465,14 +465,11 @@ export function InteractiveMap() {
       </Card>
 
       {/* Incident Modal */}
-      {/* TODO: Actualizar IncidentModal para usar el tipo Incident del backend */}
-      {/* {selectedIncident && (
-        <IncidentModal
-          incident={selectedIncident}
-          isOpen={!!selectedIncident}
-          onClose={() => setSelectedIncident(null)}
-        />
-      )} */}
+      <IncidentDetailModal
+        incident={selectedIncident}
+        isOpen={!!selectedIncident}
+        onClose={() => setSelectedIncident(null)}
+      />
     </div>
   )
 }

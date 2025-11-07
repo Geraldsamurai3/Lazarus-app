@@ -17,6 +17,15 @@ export const metadata: Metadata = {
   title: "Lazarus - Plataforma de Reporte Ciudadano",
   description: "Plataforma de reporte ciudadano y gestión de emergencias",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/LZ_fav.png", sizes: "32x32", type: "image/png" },
+      { url: "/LZ_fav.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/LZ_fav.png",
+    shortcut: "/favicon.svg",
+  },
 }
 
 export default function RootLayout({
@@ -25,13 +34,32 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link 
           rel="stylesheet" 
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
           crossOrigin="anonymous"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('lazarus-theme');
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else if (theme === 'light') {
+                  document.documentElement.classList.remove('dark');
+                } else {
+                  // Auto-detect system preference
+                  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                  }
+                }
+              } catch (e) {}
+            `,
+          }}
         />
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>

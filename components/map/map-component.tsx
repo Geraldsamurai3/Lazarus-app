@@ -13,6 +13,20 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 })
 
+// Función para formatear el tipo de incidente
+const getIncidentTypeLabel = (tipo: string): string => {
+  const labels: Record<string, string> = {
+    INCENDIO: "Incendio",
+    INUNDACION: "Inundación",
+    TERREMOTO: "Terremoto",
+    ACCIDENTE: "Accidente",
+    VANDALISMO: "Vandalismo",
+    ROBO: "Robo",
+    ASALTO: "Asalto"
+  }
+  return labels[tipo] || tipo
+}
+
 interface MapComponentProps {
   incidents: Incident[]
   userLocation?: { lat: number; lng: number } | null
@@ -23,6 +37,22 @@ export default function MapComponent({ incidents, userLocation, onIncidentClick 
   const mapRef = useRef<L.Map | null>(null)
   const markersRef = useRef<L.Marker[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Agregar listener global para el evento del botón "Ver más"
+  useEffect(() => {
+    const handleIncidentClick = (event: any) => {
+      const incidentId = event.detail
+      const incident = incidents.find(inc => inc.id === incidentId)
+      if (incident && onIncidentClick) {
+        onIncidentClick(incident)
+      }
+    }
+
+    window.addEventListener('incidentClick', handleIncidentClick)
+    return () => {
+      window.removeEventListener('incidentClick', handleIncidentClick)
+    }
+  }, [incidents, onIncidentClick])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -133,6 +163,8 @@ export default function MapComponent({ incidents, userLocation, onIncidentClick 
     incidents.forEach((incident) => {
       const emoji = getIncidentEmoji(incident.tipo)
       const color = getSeverityColor(incident.severidad)
+      const severityLabel = getSeverityLabel(incident.severidad)
+      const statusLabel = getStatusLabel(incident.estado)
 
       const icon = L.divIcon({
         className: "incident-marker",
@@ -143,30 +175,42 @@ export default function MapComponent({ incidents, userLocation, onIncidentClick 
 
       const marker = L.marker([incident.latitud, incident.longitud], { icon })
         .bindPopup(`
-          <div style="min-width: 200px;">
+          <div style="min-width: 220px;">
             <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px;">
-              ${emoji} ${incident.tipo}
+              ${emoji} ${getIncidentTypeLabel(incident.tipo)}
             </div>
             <div style="margin-bottom: 4px;">
               <strong>Descripción:</strong><br/>
-              ${incident.descripcion.substring(0, 100)}${incident.descripcion.length > 100 ? "..." : ""}
+              <span style="font-size: 13px;">${incident.descripcion.substring(0, 80)}${incident.descripcion.length > 80 ? "..." : ""}</span>
             </div>
             <div style="margin-bottom: 4px;">
               <strong>Severidad:</strong> 
-              <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${color}; margin-left: 4px;"></span>
-              ${incident.severidad}
+              <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${color}; margin: 0 4px;"></span>
+              ${severityLabel}
             </div>
-            <div>
-              <strong>Estado:</strong> ${incident.estado}
+            <div style="margin-bottom: 8px;">
+              <strong>Estado:</strong> ${statusLabel}
             </div>
+            <button 
+              onclick="window.dispatchEvent(new CustomEvent('incidentClick', { detail: ${incident.id} })); event.stopPropagation();"
+              style="
+                width: 100%;
+                padding: 6px 12px;
+                background: #4f46e5;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 500;
+              "
+              onmouseover="this.style.background='#4338ca'"
+              onmouseout="this.style.background='#4f46e5'"
+            >
+              Ver más
+            </button>
           </div>
         `)
-
-      marker.on("click", () => {
-        if (onIncidentClick) {
-          onIncidentClick(incident)
-        }
-      })
 
       if (mapRef.current) {
         marker.addTo(mapRef.current)
@@ -209,4 +253,24 @@ function getSeverityColor(severidad: string): string {
     CRITICA: "#ef4444",
   }
   return colorMap[severidad] || "#6b7280"
+}
+
+function getSeverityLabel(severidad: string): string {
+  const labelMap: Record<string, string> = {
+    BAJA: "Baja",
+    MEDIA: "Media",
+    ALTA: "Alta",
+    CRITICA: "Crítica",
+  }
+  return labelMap[severidad] || severidad
+}
+
+function getStatusLabel(estado: string): string {
+  const labelMap: Record<string, string> = {
+    PENDIENTE: "Pendiente",
+    EN_PROCESO: "En progreso",
+    RESUELTO: "Resuelto",
+    CANCELADO: "Falso",
+  }
+  return labelMap[estado] || estado
 }

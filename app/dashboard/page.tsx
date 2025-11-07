@@ -11,6 +11,7 @@ import Link from "next/link"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { IncidentLists } from "@/components/dashboard/incident-lists"
 import { LogoutButton } from "@/components/ui/logout-button"
+import { AdminDashboard } from "@/components/admin/admin-dashboard"
 
 function DashboardContent() {
   const { t } = useLanguage()
@@ -18,6 +19,11 @@ function DashboardContent() {
   const { incidents, loading, error, refreshIncidents } = useIncidents()
 
   if (!user) return null
+  
+  // Si es Admin, mostrar el panel de administrador directamente
+  if (user.userType === UserType.ADMIN) {
+    return <AdminDashboard />
+  }
   
   // Filter incidents based on user type
   let userIncidents = incidents
@@ -33,6 +39,9 @@ function DashboardContent() {
   )
   const resolvedIncidents = userIncidents.filter((i) => 
     i.estado === EstadoIncidente.RESUELTO
+  )
+  const canceledIncidents = userIncidents.filter((i) => 
+    i.estado === EstadoIncidente.CANCELADO
   )
   
   const handleRefresh = () => {
@@ -104,12 +113,12 @@ function DashboardContent() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("dashboard.activeUsers")}</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Incidentes falsos</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{new Set(userIncidents.map((i) => i.ciudadano_id)).size}</div>
-              <p className="text-xs text-muted-foreground">{t("dashboard.reportingIncidents")}</p>
+              <div className="text-2xl font-bold text-red-600">{canceledIncidents.length}</div>
+              <p className="text-xs text-muted-foreground">Reportes cancelados</p>
             </CardContent>
           </Card>
         </div>
@@ -141,6 +150,7 @@ function DashboardContent() {
         <IncidentLists 
           pendingIncidents={pendingIncidents}
           resolvedIncidents={resolvedIncidents}
+          canceledIncidents={canceledIncidents}
           onStatusChange={handleRefresh}
         />
       </main>

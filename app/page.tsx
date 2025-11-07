@@ -5,7 +5,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { PresentationHeader } from "@/components/layout/presentation-header"
 import Link from "next/link"
+import Image from "next/image"
 import {
   Shield,
   Users,
@@ -30,55 +32,20 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/" className="text-2xl font-bold text-foreground">
-                Lazarus
-              </Link>
-              <Badge variant="secondary" className="ml-3">
-                Plataforma Ciudadana
-              </Badge>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <a href="#mision" className="text-muted-foreground hover:text-foreground transition-colors">
-                Misión
-              </a>
-              <a href="#vision" className="text-muted-foreground hover:text-foreground transition-colors">
-                Visión
-              </a>
-              <a href="#funcionalidades" className="text-muted-foreground hover:text-foreground transition-colors">
-                Funcionalidades
-              </a>
-              <a href="#publico" className="text-muted-foreground hover:text-foreground transition-colors">
-                Público
-              </a>
-              <a href="#contacto" className="text-muted-foreground hover:text-foreground transition-colors">
-                Contacto
-              </a>
-            </nav>
-            <Link href="/login">
-              <Button>
-                Acceder
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PresentationHeader />
 
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex justify-center mb-8">
             <div className="relative">
-              <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center">
-                <Shield className="w-12 h-12 text-primary-foreground" />
-              </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                <Heart className="w-4 h-4 text-accent-foreground" />
-              </div>
+              <Image 
+                src="/LZ_logo.png" 
+                alt="Lazarus Logo" 
+                width={250} 
+                height={250}
+                className="object-contain"
+              />
             </div>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
@@ -427,7 +394,13 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center mb-4">
-                <Shield className="w-8 h-8 text-primary mr-3" />
+                <Image 
+                  src="/LZ_logo.png" 
+                  alt="Lazarus Logo" 
+                  width={64} 
+                  height={64}
+                  className="object-contain mr-3"
+                />
                 <span className="text-2xl font-bold text-foreground">Lazarus</span>
               </div>
               <p className="text-muted-foreground mb-4 max-w-md">

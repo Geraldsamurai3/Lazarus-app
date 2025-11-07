@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react"
+import { Eye, EyeOff, Loader2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,9 +14,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { ConnectionStatus } from "@/components/ui/connection-status"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
 import Link from "next/link"
+import { api } from "@/lib/api"
 
 // Schema para CIUDADANO
 const ciudadanoSchema = z.object({
@@ -54,6 +54,15 @@ export function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
+  const [emailStatus, setEmailStatus] = useState<{
+    checking: boolean
+    available: boolean | null
+    message: string
+  }>({
+    checking: false,
+    available: null,
+    message: "",
+  })
   const router = useRouter()
   const { toast } = useToast()
 
@@ -81,6 +90,48 @@ export function RegisterForm() {
       router.push("/dashboard")
     }
   }, [isAuthenticated, router])
+
+  // Validación de email en tiempo real
+  const checkEmailAvailability = async (email: string) => {
+    if (!email || !email.includes('@')) {
+      setEmailStatus({ checking: false, available: null, message: "" })
+      return
+    }
+
+    setEmailStatus({ checking: true, available: null, message: "" })
+
+    try {
+      const response = await api.post<{ available: boolean; message: string }>(
+        "/auth/check-email",
+        { email }
+      )
+
+      setEmailStatus({
+        checking: false,
+        available: response.available,
+        message: response.message,
+      })
+    } catch (error) {
+      console.error("Email check error:", error)
+      setEmailStatus({
+        checking: false,
+        available: null,
+        message: "",
+      })
+    }
+  }
+
+  // Debounce para validación de email
+  useEffect(() => {
+    const email = form.watch("email")
+    if (!email) return
+
+    const timeoutId = setTimeout(() => {
+      checkEmailAvailability(email)
+    }, 500) // 500ms de debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [form.watch("email")])
 
   // Submit handler
   const onSubmit = async (data: CiudadanoFormValues) => {
@@ -125,9 +176,6 @@ export function RegisterForm() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Lazarus</CardTitle>
           <CardDescription>Crear Nueva Cuenta de Ciudadano</CardDescription>
-          <div className="flex justify-center mt-4">
-            <ConnectionStatus />
-          </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -170,6 +218,24 @@ export function RegisterForm() {
                     <FormControl>
                       <Input {...field} type="email" placeholder="usuario@ejemplo.com" disabled={isLoading} />
                     </FormControl>
+                    {emailStatus.checking && (
+                      <FormDescription className="flex items-center gap-1 text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Verificando disponibilidad...
+                      </FormDescription>
+                    )}
+                    {emailStatus.available === true && (
+                      <FormDescription className="flex items-center gap-1 text-green-600">
+                        <CheckCircle2 className="h-3 w-3" />
+                        {emailStatus.message}
+                      </FormDescription>
+                    )}
+                    {emailStatus.available === false && (
+                      <FormDescription className="flex items-center gap-1 text-red-600">
+                        <XCircle className="h-3 w-3" />
+                        {emailStatus.message}
+                      </FormDescription>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -351,17 +417,11 @@ export function RegisterForm() {
             </form>
           </Form>
 
-          <div className="mt-6 pt-4 border-t border-border/30 text-center space-y-2">
+          <div className="mt-6 pt-4 border-t border-border/30 text-center">
             <p className="text-sm text-muted-foreground">
               ¿Ya tienes una cuenta?{" "}
               <Link href="/login" className="text-primary hover:underline">
                 Inicia sesión aquí
-              </Link>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              ¿Problemas para registrarse?{" "}
-              <Link href="/debug" className="text-primary hover:underline">
-                Diagnóstico del sistema
               </Link>
             </p>
           </div>

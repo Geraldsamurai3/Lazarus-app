@@ -122,6 +122,42 @@ export async function updateIncident(id: number, data: UpdateIncidentDto): Promi
 }
 
 /**
+ * Actualizar solo el estado de un incidente (para ENTIDAD)
+ * ⚠️ IMPORTANTE: Las entidades SOLO pueden cambiar el estado, ningún otro campo
+ */
+export async function updateIncidentStatus(
+  id: number, 
+  estado: EstadoIncidente
+): Promise<Incident> {
+  try {
+    const payload = { estado }
+    console.log(`🔄 Cambiando estado del incidente #${id} a:`, estado)
+    console.log(`📤 Payload enviado:`, JSON.stringify(payload))
+    console.log(`📤 Tipo de payload:`, typeof payload)
+    console.log(`📤 Keys del payload:`, Object.keys(payload))
+    console.log(`📤 Valores del payload:`, Object.values(payload))
+    
+    // Verificar usuario actual
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('access_token')
+      const userStr = localStorage.getItem('user')
+      console.log(`👤 Token presente:`, !!token)
+      console.log(`👤 Usuario:`, userStr ? JSON.parse(userStr) : 'No user')
+    }
+    
+    // CRÍTICO: Solo enviar el campo estado para ENTIDADes
+    const incident = await api.patch<Incident>(`/incidents/${id}`, payload)
+    
+    console.log('✅ Estado del incidente actualizado')
+    
+    return incident
+  } catch (error) {
+    console.error(`❌ Error al actualizar estado del incidente #${id}:`, error)
+    throw error
+  }
+}
+
+/**
  * Eliminar un incidente (CIUDADANO solo propios, ADMIN cualquiera)
  */
 export async function deleteIncident(id: number): Promise<void> {

@@ -10,14 +10,26 @@ export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  // Check token expiration before making request
-  if (isTokenExpired()) {
+  // Lista de endpoints que NO requieren validación de token
+  const publicEndpoints = [
+    '/auth/login', 
+    '/auth/register', 
+    '/auth/register-entidad', 
+    '/auth/register-admin',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+    '/auth/check-email'
+  ]
+  const isPublicEndpoint = publicEndpoints.some(publicPath => endpoint.includes(publicPath))
+
+  // Solo verificar token si NO es un endpoint público
+  if (!isPublicEndpoint && isTokenExpired()) {
     logout()
     throw new Error('Tu sesión ha expirado. Por favor inicia sesión nuevamente.')
   }
 
-  // Get JWT token
-  const token = getToken()
+  // Get JWT token (solo para endpoints protegidos)
+  const token = !isPublicEndpoint ? getToken() : null
   
   // Prepare headers
   const headers = new Headers(options.headers || {})
@@ -41,8 +53,14 @@ export async function apiRequest<T = any>(
 
     // Handle unauthorized responses
     if (response.status === 401) {
-      logout()
-      throw new Error('Tu sesión ha expirado. Por favor inicia sesión nuevamente.')
+      // Si es un endpoint público (login), NO hacer logout ni mostrar mensaje de sesión expirada
+      if (!isPublicEndpoint) {
+        logout()
+        throw new Error('Tu sesión ha expirado. Por favor inicia sesión nuevamente.')
+      }
+      // Para endpoints públicos, dejar que el backend maneje el error
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'No autorizado')
     }
 
     // Handle other error responses
@@ -84,12 +102,16 @@ export const api = {
       body: data ? JSON.stringify(data) : undefined 
     }),
   
-  patch: <T = any>(endpoint: string, data?: any, options?: RequestInit) => 
-    apiRequest<T>(endpoint, { 
+  patch: <T = any>(endpoint: string, data?: any, options?: RequestInit) => {
+    console.log(`🔧 PATCH Request to ${endpoint}`)
+    console.log(`📦 Data being sent:`, data)
+    console.log(`📝 JSON stringified:`, JSON.stringify(data))
+    return apiRequest<T>(endpoint, { 
       ...options, 
       method: 'PATCH', 
       body: data ? JSON.stringify(data) : undefined 
-    }),
+    })
+  },
   
   delete: <T = any>(endpoint: string, options?: RequestInit) => 
     apiRequest<T>(endpoint, { ...options, method: 'DELETE' }),
