@@ -48,6 +48,14 @@ export default function MapPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">{t("map.incidentMap")}</h1>
           <p className="text-muted-foreground mt-2">{t("map.visualizeAndFilter")}</p>
+          
+          {/* Info note about map showing all incidents */}
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700">
+              <span className="font-semibold">📍 Vista completa:</span> Este mapa muestra todos los incidentes reportados por la comunidad, 
+              independientemente de quién los haya creado. Utiliza los filtros para encontrar incidentes específicos.
+            </p>
+          </div>
         </div>
         <InteractiveMap />
       </main>
