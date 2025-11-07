@@ -157,10 +157,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Clear authentication state
    */
   const logout = () => {
-    authService.logout()
+    // Limpiar primero el estado local para que la UI reaccione inmediatamente
     setUser(null)
     setToken(null)
     setIsAuthenticated(false)
+    
+    // Luego limpiar localStorage
+    authService.logout()
   }
 
   /**

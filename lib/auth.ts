@@ -79,11 +79,8 @@ export async function login(
       
       const loginDto: LoginDto = { email, contraseña: password }
       try {
-        console.log('🔐 Intentando login con:', { email, backend: API_URL })
         response = await api.post<AuthResponse>('/auth/login', loginDto)
-        console.log('✅ Login exitoso:', response?.user?.email)
       } catch (error) {
-        console.error('❌ Error en login:', error)
         // Handle specific auth errors
         if (error instanceof Error) {
           if (error.message.includes('401') || error.message.includes('inválid')) {
@@ -214,8 +211,9 @@ function parseJwt(token: string): JwtPayload | null {
 export function logout(): void {
   if (typeof window === "undefined") return
   
-  // Obtener usuario actual antes de limpiar
-  const currentUser = getCurrentUser()
+  // Obtener usuario directamente de localStorage (sin llamar getCurrentUser para evitar bucle infinito)
+  const userStr = localStorage.getItem(USER_KEY)
+  const currentUser = userStr ? JSON.parse(userStr) : null
   
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)

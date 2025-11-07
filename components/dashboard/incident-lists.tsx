@@ -37,6 +37,21 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
   const { toast } = useToast()
   const [updating, setUpdating] = useState<number | null>(null)
 
+  // Ordenar incidentes pendientes: más viejos primero (ascendente)
+  const sortedPendingIncidents = [...pendingIncidents].sort((a, b) => 
+    new Date(a.fecha_creacion).getTime() - new Date(b.fecha_creacion).getTime()
+  )
+
+  // Ordenar incidentes resueltos: más nuevos primero (descendente)
+  const sortedResolvedIncidents = [...resolvedIncidents].sort((a, b) => 
+    new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime()
+  )
+
+  // Ordenar incidentes cancelados: más nuevos primero (descendente)
+  const sortedCanceledIncidents = [...canceledIncidents].sort((a, b) => 
+    new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime()
+  )
+
   const handleStatusChange = async (incidentId: number, newStatus: EstadoIncidente) => {
     if (!user) return
     
@@ -112,8 +127,8 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Incidentes no atendidos */}
-      <Card className="h-fit">
-        <CardHeader className="pb-4">
+      <Card className="flex flex-col h-[600px]">
+        <CardHeader className="pb-4 flex-shrink-0">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <AlertTriangle className="w-5 h-5 text-red-500" />
             Incidentes no atendidos
@@ -122,9 +137,9 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {pendingIncidents.length > 0 ? (
-            pendingIncidents.map((incident) => (
+        <CardContent className="space-y-4 overflow-y-auto flex-1 pr-2">
+          {sortedPendingIncidents.length > 0 ? (
+            sortedPendingIncidents.map((incident) => (
               <div
                 key={incident.id}
                 className="border border-border rounded-lg p-4 bg-card hover:bg-muted/20 transition-colors"
@@ -212,8 +227,8 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
       </Card>
 
       {/* Incidentes atendidos */}
-      <Card className="h-fit">
-        <CardHeader className="pb-4">
+      <Card className="flex flex-col h-[600px]">
+        <CardHeader className="pb-4 flex-shrink-0">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <CheckCircle className="w-5 h-5 text-green-500" />
             Incidentes atendidos
@@ -222,9 +237,9 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {resolvedIncidents.length > 0 ? (
-            resolvedIncidents.map((incident) => (
+        <CardContent className="space-y-4 overflow-y-auto flex-1 pr-2">
+          {sortedResolvedIncidents.length > 0 ? (
+            sortedResolvedIncidents.map((incident) => (
               <div
                 key={incident.id}
                 className="border border-border rounded-lg p-4 bg-secondary/30 hover:bg-secondary/50 transition-colors"
@@ -285,8 +300,8 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
 
       {/* Incidentes falsos */}
       {canceledIncidents.length > 0 && (
-        <Card className="h-fit">
-          <CardHeader className="pb-4">
+        <Card className="flex flex-col h-[600px] lg:col-span-2">
+          <CardHeader className="pb-4 flex-shrink-0">
             <CardTitle className="flex items-center gap-2 text-foreground">
               <XCircle className="w-5 h-5 text-red-500" />
               Incidentes falsos
@@ -295,8 +310,8 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {canceledIncidents.map((incident) => (
+          <CardContent className="space-y-4 overflow-y-auto flex-1 pr-2">
+            {sortedCanceledIncidents.map((incident) => (
               <div
                 key={incident.id}
                 className="border border-border rounded-lg p-4 bg-red-50/30 hover:bg-red-50/50 transition-colors opacity-75"

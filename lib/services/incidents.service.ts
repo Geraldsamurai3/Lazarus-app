@@ -51,15 +51,11 @@ export async function getIncidents(filters?: IncidentFilters): Promise<Incident[
     const queryString = params.toString()
     const endpoint = queryString ? `/incidents?${queryString}` : '/incidents'
 
-    console.log('📍 Obteniendo incidentes:', queryString || 'todos')
-
     const incidents = await api.get<Incident[]>(endpoint)
-    
-    console.log(`✅ ${incidents.length} incidentes obtenidos`)
     
     return incidents
   } catch (error) {
-    console.error('❌ Error al obtener incidentes:', error)
+    console.error('Error al obtener incidentes:', error)
     throw error
   }
 }
@@ -69,15 +65,11 @@ export async function getIncidents(filters?: IncidentFilters): Promise<Incident[
  */
 export async function getIncidentById(id: number): Promise<Incident> {
   try {
-    console.log(`📍 Obteniendo incidente #${id}`)
-    
     const incident = await api.get<Incident>(`/incidents/${id}`)
-    
-    console.log('✅ Incidente obtenido:', incident.tipo)
     
     return incident
   } catch (error) {
-    console.error(`❌ Error al obtener incidente #${id}:`, error)
+    console.error(`Error al obtener incidente #${id}:`, error)
     throw error
   }
 }
@@ -87,15 +79,11 @@ export async function getIncidentById(id: number): Promise<Incident> {
  */
 export async function createIncident(data: CreateIncidentDto): Promise<Incident> {
   try {
-    console.log('📝 Creando incidente:', data.tipo, data.severidad)
-    
     const incident = await api.post<Incident>('/incidents', data)
-    
-    console.log('✅ Incidente creado:', incident.id)
     
     return incident
   } catch (error) {
-    console.error('❌ Error al crear incidente:', error)
+    console.error('Error al crear incidente:', error)
     throw error
   }
 }
@@ -108,15 +96,11 @@ export async function createIncident(data: CreateIncidentDto): Promise<Incident>
  */
 export async function updateIncident(id: number, data: UpdateIncidentDto): Promise<Incident> {
   try {
-    console.log(`📝 Actualizando incidente #${id}`)
-    
     const incident = await api.patch<Incident>(`/incidents/${id}`, data)
-    
-    console.log('✅ Incidente actualizado')
     
     return incident
   } catch (error) {
-    console.error(`❌ Error al actualizar incidente #${id}:`, error)
+    console.error(`Error al actualizar incidente #${id}:`, error)
     throw error
   }
 }
@@ -131,28 +115,13 @@ export async function updateIncidentStatus(
 ): Promise<Incident> {
   try {
     const payload = { estado }
-    console.log(`🔄 Cambiando estado del incidente #${id} a:`, estado)
-    console.log(`📤 Payload enviado:`, JSON.stringify(payload))
-    console.log(`📤 Tipo de payload:`, typeof payload)
-    console.log(`📤 Keys del payload:`, Object.keys(payload))
-    console.log(`📤 Valores del payload:`, Object.values(payload))
-    
-    // Verificar usuario actual
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token')
-      const userStr = localStorage.getItem('user')
-      console.log(`👤 Token presente:`, !!token)
-      console.log(`👤 Usuario:`, userStr ? JSON.parse(userStr) : 'No user')
-    }
     
     // CRÍTICO: Solo enviar el campo estado para ENTIDADes
     const incident = await api.patch<Incident>(`/incidents/${id}`, payload)
     
-    console.log('✅ Estado del incidente actualizado')
-    
     return incident
   } catch (error) {
-    console.error(`❌ Error al actualizar estado del incidente #${id}:`, error)
+    console.error(`Error al actualizar estado del incidente #${id}:`, error)
     throw error
   }
 }
@@ -162,13 +131,9 @@ export async function updateIncidentStatus(
  */
 export async function deleteIncident(id: number): Promise<void> {
   try {
-    console.log(`🗑️ Eliminando incidente #${id}`)
-    
     await api.delete(`/incidents/${id}`)
-    
-    console.log('✅ Incidente eliminado')
   } catch (error) {
-    console.error(`❌ Error al eliminar incidente #${id}:`, error)
+    console.error(`Error al eliminar incidente #${id}:`, error)
     throw error
   }
 }
@@ -184,17 +149,13 @@ export async function getNearbyIncidents(params: NearbyParams): Promise<Incident
   try {
     const { lat, lng, radius = 10 } = params
     
-    console.log(`📍 Buscando incidentes cercanos a (${lat}, ${lng}) en ${radius}km`)
-    
     const incidents = await api.get<Incident[]>(
       `/incidents/nearby?lat=${lat}&lng=${lng}&radius=${radius}`
     )
     
-    console.log(`✅ ${incidents.length} incidentes cercanos encontrados`)
-    
     return incidents
   } catch (error) {
-    console.error('❌ Error al buscar incidentes cercanos:', error)
+    console.error('Error al buscar incidentes cercanos:', error)
     throw error
   }
 }
@@ -208,15 +169,11 @@ export async function getNearbyIncidents(params: NearbyParams): Promise<Incident
  */
 export async function getIncidentStatistics(): Promise<IncidentStats> {
   try {
-    console.log('📊 Obteniendo estadísticas de incidentes')
-    
     const stats = await api.get<IncidentStats>('/incidents/statistics')
-    
-    console.log('✅ Estadísticas obtenidas:', stats.total, 'incidentes')
     
     return stats
   } catch (error) {
-    console.error('❌ Error al obtener estadísticas:', error)
+    console.error('Error al obtener estadísticas:', error)
     throw error
   }
 }

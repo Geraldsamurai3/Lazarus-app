@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LocationSelector } from "@/components/forms/location-selector"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
@@ -270,55 +271,21 @@ export function RegisterForm() {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="provincia"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Provincia</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona una provincia" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PROVINCIAS_CR.map((prov) => (
-                          <SelectItem key={prov} value={prov}>{prov}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="canton"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cantón</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Central" disabled={isLoading} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="distrito"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Distrito</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Carmen" disabled={isLoading} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              {/* Selector de Ubicación */}
+              <div className="space-y-4">
+                <LocationSelector
+                  provincia={form.watch("provincia")}
+                  canton={form.watch("canton")}
+                  distrito={form.watch("distrito")}
+                  onProvinciaChange={(value) => form.setValue("provincia", value)}
+                  onCantonChange={(value) => form.setValue("canton", value)}
+                  onDistritoChange={(value) => form.setValue("distrito", value)}
+                  disabled={isLoading}
+                  errors={{
+                    provincia: form.formState.errors.provincia?.message,
+                    canton: form.formState.errors.canton?.message,
+                    distrito: form.formState.errors.distrito?.message
+                  }}
                 />
               </div>
 

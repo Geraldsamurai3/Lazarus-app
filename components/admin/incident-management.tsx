@@ -28,6 +28,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -36,10 +45,10 @@ import {
   Loader2, 
   Search, 
   AlertTriangle,
-  Trash2,
   Edit,
   MapPin,
-  User
+  User,
+  Info
 } from "lucide-react"
 
 // Función para formatear el tipo de incidente
@@ -96,6 +105,13 @@ interface Incident {
   }
 }
 
+interface MediaFile {
+  id: number
+  url: string
+  tipo_archivo: string
+  fecha_subida: string
+}
+
 export function IncidentManagement() {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [filteredIncidents, setFilteredIncidents] = useState<Incident[]>([])
@@ -106,8 +122,12 @@ export function IncidentManagement() {
   const [filterStatus, setFilterStatus] = useState<string>("ALL")
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false)
   const [editedIncident, setEditedIncident] = useState<Partial<Incident>>({})
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null)
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
+  const [loadingMedia, setLoadingMedia] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
   
   // Paginación
   const [currentPage, setCurrentPage] = useState(1)
@@ -182,6 +202,27 @@ export function IncidentManagement() {
     setIsEditDialogOpen(true)
   }
 
+  const openInfoDialog = (incident: Incident) => {
+    setSelectedIncident(incident)
+    setIsInfoDialogOpen(true)
+    loadMediaFiles(incident.id)
+  }
+
+  const loadMediaFiles = async (incidentId: number) => {
+    setLoadingMedia(true)
+    try {
+      const response = await api.get<{ message: string; data: MediaFile[] }>(
+        `/incident-media/incident/${incidentId}`
+      )
+      setMediaFiles(response.data || [])
+    } catch (error) {
+      console.error('Error al cargar archivos multimedia:', error)
+      setMediaFiles([])
+    } finally {
+      setLoadingMedia(false)
+    }
+  }
+
   const handleUpdateIncident = async () => {
     if (!selectedIncident) return
 
@@ -207,21 +248,6 @@ export function IncidentManagement() {
     } catch (error) {
       console.error("Error actualizando incidente:", error)
       setMessage({ text: "Error al actualizar incidente", type: "error" })
-    }
-  }
-
-  const handleDeleteIncident = async (incidentId: number) => {
-    if (!confirm("¿Estás seguro de eliminar este incidente? Esta acción no se puede deshacer.")) {
-      return
-    }
-
-    try {
-      await api.delete(`/incidents/${incidentId}`)
-      setMessage({ text: "Incidente eliminado exitosamente", type: "success" })
-      await loadIncidents()
-    } catch (error) {
-      console.error("Error eliminando incidente:", error)
-      setMessage({ text: "Error al eliminar incidente", type: "error" })
     }
   }
 
@@ -332,7 +358,6 @@ export function IncidentManagement() {
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
-                    <TableHead>ID</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Severidad</TableHead>
@@ -344,14 +369,13 @@ export function IncidentManagement() {
                 <TableBody>
                   {paginatedIncidents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground h-32">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground h-32">
                         No se encontraron incidentes
                       </TableCell>
                     </TableRow>
                   ) : (
                     paginatedIncidents.map((incident) => (
                     <TableRow key={incident.id}>
-                      <TableCell className="font-medium">#{incident.id}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{getIncidentTypeLabel(incident.tipo)}</Badge>
                       </TableCell>
@@ -393,10 +417,10 @@ export function IncidentManagement() {
                           </Button>
                           <Button
                             size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteIncident(incident.id)}
+                            variant="default"
+                            onClick={() => openInfoDialog(incident)}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Info className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -415,49 +439,66 @@ export function IncidentManagement() {
             </div>
             
             {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Anterior
-                </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                    let page;
-                    if (totalPages <= 5) {
-                      page = i + 1;
-                    } else if (currentPage <= 3) {
-                      page = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      page = totalPages - 4 + i;
-                    } else {
-                      page = currentPage - 2 + i;
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setCurrentPage(prev => Math.max(1, prev - 1))
+                      }}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Mostrar primera página, última página, página actual y páginas adyacentes
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              setCurrentPage(page)
+                            }}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    } else if (
+                      page === currentPage - 2 ||
+                      page === currentPage + 2
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )
                     }
-                    return (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(page)}
-                        className="w-8"
-                      >
-                        {page}
-                      </Button>
-                    );
+                    return null
                   })}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Siguiente
-                </Button>
-              </div>
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setCurrentPage(prev => Math.min(totalPages, prev + 1))
+                      }}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             )}
           </div>
         </CardContent>
@@ -568,6 +609,179 @@ export function IncidentManagement() {
               Guardar Cambios
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Información Detallada */}
+      <Dialog open={isInfoDialogOpen} onOpenChange={setIsInfoDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalles del Incidente #{selectedIncident?.id}</DialogTitle>
+            <DialogDescription>
+              Información completa del reporte
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedIncident && (
+            <div className="space-y-6">
+              {/* Información básica */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Tipo de Incidente</Label>
+                  <div>
+                    <Badge variant="outline" className="text-base">
+                      {getIncidentTypeLabel(selectedIncident.tipo)}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Severidad</Label>
+                  <div>
+                    <Badge className={`${getSeverityColor(selectedIncident.severidad)} text-base`}>
+                      {getSeverityLabel(selectedIncident.severidad)}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Estado</Label>
+                  <div>
+                    <Badge variant={getStatusColor(selectedIncident.estado) as any} className="text-base">
+                      {getStatusLabel(selectedIncident.estado)}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Fecha de Reporte</Label>
+                  <p className="text-sm">
+                    {new Date(selectedIncident.fecha_creacion).toLocaleString('es-ES', {
+                      dateStyle: 'long',
+                      timeStyle: 'short'
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Descripción */}
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Descripción</Label>
+                <p className="text-sm bg-muted p-4 rounded-lg">
+                  {selectedIncident.descripcion}
+                </p>
+              </div>
+
+              {/* Multimedia */}
+              {loadingMedia ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                </div>
+              ) : mediaFiles.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Archivos Multimedia</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {mediaFiles.map((media) => (
+                      <div
+                        key={media.id}
+                        className="relative aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity border"
+                        onClick={() => setSelectedImage(media.url)}
+                      >
+                        {media.tipo_archivo?.startsWith('image/') ? (
+                          <img
+                            src={media.url}
+                            alt="Evidencia del incidente"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : media.tipo_archivo?.startsWith('video/') ? (
+                          <video
+                            src={media.url}
+                            className="w-full h-full object-cover"
+                            controls
+                          />
+                        ) : (
+                          <img
+                            src={media.url}
+                            alt="Evidencia del incidente"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Ubicación */}
+              <div className="space-y-2">
+                <Label className="text-muted-foreground flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Ubicación
+                </Label>
+                <div className="bg-muted p-4 rounded-lg space-y-2">
+                  <p className="text-sm">
+                    <strong>Dirección:</strong> {selectedIncident.direccion}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Coordenadas:</strong> {selectedIncident.latitud}, {selectedIncident.longitud}
+                  </p>
+                  <a
+                    href={`https://www.google.com/maps?q=${selectedIncident.latitud},${selectedIncident.longitud}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    Ver en Google Maps
+                    <MapPin className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Reportado por */}
+              {selectedIncident.ciudadano && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Reportado por
+                  </Label>
+                  <div className="bg-muted p-4 rounded-lg space-y-1">
+                    <p className="text-sm">
+                      <strong>Nombre:</strong> {selectedIncident.ciudadano.nombre} {selectedIncident.ciudadano.apellidos}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Email:</strong> {selectedIncident.ciudadano.email}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsInfoDialogOpen(false)}>
+              Cerrar
+            </Button>
+            <Button onClick={() => {
+              setIsInfoDialogOpen(false)
+              if (selectedIncident) openEditDialog(selectedIncident)
+            }}>
+              Editar Incidente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para ver imagen en pantalla completa */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden">
+          <DialogTitle className="sr-only">Vista previa de imagen</DialogTitle>
+          {selectedImage && (
+            <img
+              src={selectedImage}
+              alt="Vista completa"
+              className="w-full h-auto max-h-[85vh] object-contain"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

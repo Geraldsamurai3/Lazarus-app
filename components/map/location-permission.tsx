@@ -4,17 +4,11 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  getCurrentLocation,
-  getSimulatedLocation,
-  isGeolocationSupported,
-  type UserLocation,
-  type GeolocationError,
-} from "@/lib/geolocation"
-import { MapPin, Navigation, AlertTriangle, X, Loader2 } from "lucide-react"
+import { locationService } from "@/lib/services/location.service"
+import { MapPin, Navigation, AlertTriangle, X, Loader2, Shield, CheckCircle } from "lucide-react"
 
 interface LocationPermissionProps {
-  onLocationGranted: (location: UserLocation, savePreference?: boolean) => void
+  onLocationGranted: (location: { lat: number; lng: number }) => void
   onLocationDenied: () => void
 }
 
@@ -22,44 +16,28 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleRequestLocation = async (savePreference: boolean = false) => {
+  const handleRequestLocation = async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      if (!isGeolocationSupported()) {
-        throw new Error("Tu navegador no soporta geolocalización")
-      }
-
-      const location = await getCurrentLocation()
-      onLocationGranted(location, savePreference)
+      const location = await locationService.getUserLocation()
+      onLocationGranted({ lat: location.lat, lng: location.lng })
     } catch (err) {
-      const error = err as GeolocationError
-      let errorMessage = "No se pudo obtener tu ubicación"
-
-      switch (error.code) {
-        case 1: // PERMISSION_DENIED
-          errorMessage = "Permisos de ubicación denegados. Puedes habilitarlos en la configuración de tu navegador."
-          break
-        case 2: // POSITION_UNAVAILABLE
-          errorMessage = "Tu ubicación no está disponible en este momento."
-          break
-        case 3: // TIMEOUT
-          errorMessage = "La solicitud de ubicación ha expirado. Inténtalo de nuevo."
-          break
-        default:
-          errorMessage = error.message || "Error desconocido al obtener la ubicación"
-      }
-
+      const errorMessage = err instanceof Error ? err.message : "Error desconocido"
       setError(errorMessage)
+      
+      // Usar ubicación por defecto en caso de error
+      const defaultLoc = locationService.getDefaultLocation()
+      onLocationGranted({ lat: defaultLoc.lat, lng: defaultLoc.lng })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleUseSimulatedLocation = () => {
-    const simulatedLocation = getSimulatedLocation()
-    onLocationGranted(simulatedLocation, false)
+  const handleUseDefaultLocation = () => {
+    const defaultLoc = locationService.getDefaultLocation()
+    onLocationGranted({ lat: defaultLoc.lat, lng: defaultLoc.lng })
   }
 
   const handleDismiss = () => {
@@ -100,7 +78,7 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
 
           <div className="space-y-3">
             <div className="flex items-start gap-3 text-sm">
-              <MapPin className="w-4 h-4 mt-0.5 text-blue-500 flex-shrink-0" />
+              <CheckCircle className="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" />
               <div>
                 <p className="font-medium">¿Por qué necesitamos tu ubicación?</p>
                 <p className="text-muted-foreground">
@@ -110,11 +88,11 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
             </div>
 
             <div className="flex items-start gap-3 text-sm">
-              <Navigation className="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" />
+              <Shield className="w-4 h-4 mt-0.5 text-blue-500 flex-shrink-0" />
               <div>
                 <p className="font-medium">Tu privacidad está protegida</p>
                 <p className="text-muted-foreground">
-                  Tu ubicación se usa solo localmente y no se almacena en nuestros servidores.
+                  Tu ubicación se usa localmente y no se almacena en nuestros servidores.
                 </p>
               </div>
             </div>
@@ -122,7 +100,7 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
 
           <div className="flex flex-col gap-2 pt-2">
             <Button 
-              onClick={() => handleRequestLocation(true)} 
+              onClick={handleRequestLocation} 
               disabled={isLoading} 
               className="w-full"
             >
@@ -140,36 +118,22 @@ export function LocationPermission({ onLocationGranted, onLocationDenied }: Loca
             </Button>
 
             <Button 
-              onClick={() => handleRequestLocation(false)} 
-              disabled={isLoading} 
-              variant="secondary"
+              variant="outline" 
+              onClick={handleUseDefaultLocation}
+              disabled={isLoading}
               className="w-full"
             >
               <MapPin className="w-4 h-4 mr-2" />
-              Permitir Solo Esta Vez
+              Usar Ubicación de Prueba
             </Button>
 
             <Button 
-              variant="outline" 
+              variant="ghost" 
               onClick={handleDismiss}
               disabled={isLoading}
               className="w-full"
             >
               No Permitir
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-blue-50 dark:bg-blue-950 px-2 text-muted-foreground">O</span>
-              </div>
-            </div>
-
-            <Button variant="outline" onClick={handleUseSimulatedLocation} className="w-full bg-transparent">
-              <MapPin className="w-4 h-4 mr-2" />
-              Usar Ubicación de Prueba
             </Button>
           </div>
 
