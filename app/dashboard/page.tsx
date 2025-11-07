@@ -10,7 +10,7 @@ import { AlertTriangle, Map, FileText, Users, CheckCircle, Clock, Loader2 } from
 import Link from "next/link"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { IncidentLists } from "@/components/dashboard/incident-lists"
-import { LogoutButton } from "@/components/ui/logout-button"
+
 import { AdminDashboard } from "@/components/admin/admin-dashboard"
 
 function DashboardContent() {
@@ -71,9 +71,7 @@ function DashboardContent() {
             </h1>
             <p className="text-muted-foreground mt-2">{t("dashboard.controlPanel")}</p>
           </div>
-          <div className="flex gap-2">
-            <LogoutButton size="sm" />
-          </div>
+
         </div>
 
         {/* Stats Cards */}
