@@ -67,7 +67,7 @@ export function InteractiveMap() {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [showLocationPrompt, setShowLocationPrompt] = useState(false)
   const [useProximityFilter, setUseProximityFilter] = useState(false)
-  const [isLegendCollapsed, setIsLegendCollapsed] = useState(false)
+  const [isLegendCollapsed, setIsLegendCollapsed] = useState(true)
   const { language } = useLanguage()
 
   // Cargar ubicación guardada al montar el componente (solo si hay usuario)
@@ -375,7 +375,7 @@ export function InteractiveMap() {
         <CardContent>
           <div className="relative">
             {/* Location Button - Floating on Map */}
-            <div className="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2">
+            <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
               <Button
                 onClick={handleRequestLocation}
                 className={`shadow-2xl rounded-full w-14 h-14 p-0 transition-all hover:scale-110 ${
@@ -395,7 +395,7 @@ export function InteractiveMap() {
             </div>
 
             {/* Legend Overlay - Positioned above map */}
-            <div className="absolute top-2 right-2 z-[1000] bg-background/98 backdrop-blur-sm rounded-md shadow-xl border-2 max-w-[200px]">
+            <div className="absolute top-2 right-2 z-10 bg-background/98 backdrop-blur-sm rounded-md shadow-xl border-2 max-w-[200px]">
               {/* Legend Header - Always visible */}
               <button
                 onClick={() => setIsLegendCollapsed(!isLegendCollapsed)}
