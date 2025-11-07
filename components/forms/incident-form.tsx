@@ -13,7 +13,7 @@ import { LocationPicker } from "@/components/forms/location-picker"
 import { FileUpload } from "@/components/forms/file-upload"
 import { createIncident } from "@/lib/services/incidents.service"
 import { TipoIncidente, SeveridadIncidente } from "@/lib/types"
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser, getToken } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts/language-context"
 import { MapPin, AlertTriangle, Camera, Send, RotateCcw, Info, HelpCircle } from "lucide-react"
@@ -102,7 +102,7 @@ export function IncidentForm() {
     location: null as { lat: number; lng: number; address: string } | null,
     description: "",
     severity: "",
-    evidence: [] as string[],
+    evidence: [] as File[],
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -158,16 +158,73 @@ export function IncidentForm() {
     setIsSubmitting(true)
 
     try {
-      // Crear el incidente en el backend
-      const incident = await createIncident({
-        tipo: formData.type as TipoIncidente,
+      const token = getToken()
+      if (!token) {
+        throw new Error('No se encontró token de autenticación')
+      }
+
+      // PASO 1: Crear el incidente (sin archivos)
+      const incidentData = {
+        tipo: formData.type,
         descripcion: formData.description,
-        severidad: formData.severity as SeveridadIncidente,
+        severidad: formData.severity,
         latitud: formData.location!.lat,
         longitud: formData.location!.lng,
-        direccion: formData.location!.address,
-        imagenes: formData.evidence,
+        direccion: formData.location!.address
+      }
+
+      const incidentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/incidents`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(incidentData),
       })
+
+      if (!incidentResponse.ok) {
+        const error = await incidentResponse.json()
+        throw new Error(error.message || 'Error al crear el incidente')
+      }
+
+      const incident = await incidentResponse.json()
+      console.log('Incidente creado:', incident)
+
+      // PASO 2: Subir archivos multimedia (si hay)
+      if (formData.evidence.length > 0) {
+        const formDataToSend = new FormData()
+        
+        formData.evidence.forEach((file) => {
+          formDataToSend.append('files', file)
+        })
+
+        console.log(`Subiendo ${formData.evidence.length} archivo(s) al incidente #${incident.id}`)
+
+        const mediaResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/incident-media/upload/${incident.id}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            body: formDataToSend,
+          }
+        )
+
+        if (!mediaResponse.ok) {
+          const error = await mediaResponse.json()
+          console.error('Error al subir archivos:', error)
+          // No lanzamos error aquí, el incidente ya fue creado
+          toast({
+            title: "Advertencia",
+            description: `Incidente creado, pero hubo un error al subir ${formData.evidence.length} archivo(s)`,
+            variant: "destructive",
+          })
+        } else {
+          const mediaResult = await mediaResponse.json()
+          console.log('Archivos subidos:', mediaResult)
+        }
+      }
 
       toast({
         title: t("incident.reportSent"),
@@ -419,13 +476,14 @@ export function IncidentForm() {
               <Label>Evidencia Visual (Opcional)</Label>
               <FileUpload
                 onFilesChange={(files) => setFormData((prev) => ({ ...prev, evidence: files }))}
-                maxFiles={5}
+                maxFiles={10}
+                maxSizeMB={10}
                 acceptedTypes={["image/*", "video/*"]}
               />
               <p className="text-xs text-muted-foreground flex items-start gap-1">
                 <Camera className="w-3 h-3 mt-0.5 flex-shrink-0" />
                 <span>
-                  Sube fotos o videos del incidente (máximo 5 archivos). Esto ayuda a las autoridades a evaluar mejor la situación.
+                  Sube fotos o videos del incidente (máximo 10 archivos, 10MB cada uno). Esto ayuda a las autoridades a evaluar mejor la situación.
                 </span>
               </p>
             </div>
