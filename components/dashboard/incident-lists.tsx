@@ -131,7 +131,14 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-card-foreground mb-1">{getIncidentTypeLabel(incident.tipo)}</h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-card-foreground">{getIncidentTypeLabel(incident.tipo)}</h4>
+                      {user?.userType === UserType.CIUDADANO && user?.id_ciudadano === incident.ciudadano_id && (
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          Tuyo
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">{incident.descripcion}</p>
                   </div>
                   <div className="flex flex-col gap-2 ml-4">
@@ -224,7 +231,14 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-card-foreground mb-1">{getIncidentTypeLabel(incident.tipo)}</h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-card-foreground">{getIncidentTypeLabel(incident.tipo)}</h4>
+                      {user?.userType === UserType.CIUDADANO && user?.id_ciudadano === incident.ciudadano_id && (
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          Tuyo
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{incident.descripcion}</p>
                   </div>
                   <div className="flex flex-col gap-2 ml-4">
@@ -289,7 +303,14 @@ export function IncidentLists({ pendingIncidents, resolvedIncidents, canceledInc
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-card-foreground mb-1">{getIncidentTypeLabel(incident.tipo)}</h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-card-foreground">{getIncidentTypeLabel(incident.tipo)}</h4>
+                      {user?.userType === UserType.CIUDADANO && user?.id_ciudadano === incident.ciudadano_id && (
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          Tuyo
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{incident.descripcion}</p>
                   </div>
                   <div className="flex flex-col gap-2 ml-4">

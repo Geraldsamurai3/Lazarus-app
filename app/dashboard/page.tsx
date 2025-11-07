@@ -25,14 +25,27 @@ function DashboardContent() {
     return <AdminDashboard />
   }
   
-  // Filter incidents based on user type
+  // Filter incidents based on user type and requirements
   let userIncidents = incidents
+  let dashboardTitle = "Dashboard General"
+  let dashboardDescription = "Panel de control general"
   
   // For CIUDADANO, only show their own incidents
   if (user.userType === UserType.CIUDADANO && user.id_ciudadano) {
     userIncidents = incidents.filter((i) => i.ciudadano_id === user.id_ciudadano)
+    dashboardTitle = "Mis Incidentes"
+    dashboardDescription = "Incidentes que has reportado"
   }
-  // For ENTIDAD and ADMIN, show all incidents
+  // For ENTIDAD, show all incidents (they need to manage all incidents)
+  else if (user.userType === UserType.ENTIDAD) {
+    dashboardTitle = "Gestión de Incidentes"
+    dashboardDescription = "Todos los incidentes para gestionar"
+  }
+  // For ADMIN, show all incidents (they need to see everything)
+  else {
+    dashboardTitle = "Panel de Administración"
+    dashboardDescription = "Vista completa del sistema"
+  }
   
   const pendingIncidents = userIncidents.filter((i) => 
     i.estado === EstadoIncidente.PENDIENTE || i.estado === EstadoIncidente.EN_PROCESO
@@ -67,9 +80,11 @@ function DashboardContent() {
         <div className="mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {t("dashboard.welcome")}, {user.nombre || user.email}
+              {dashboardTitle}
             </h1>
-            <p className="text-muted-foreground mt-2">{t("dashboard.controlPanel")}</p>
+            <p className="text-muted-foreground mt-2">
+              {t("dashboard.welcome")}, {user.nombre || user.nombre_entidad || user.email} - {dashboardDescription}
+            </p>
           </div>
 
         </div>
@@ -78,12 +93,16 @@ function DashboardContent() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("dashboard.myReports")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {user.userType === UserType.CIUDADANO ? "Mis Reportes" : "Total Incidentes"}
+              </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{userIncidents.length}</div>
-              <p className="text-xs text-muted-foreground">{t("dashboard.reportsSubmitted")}</p>
+              <p className="text-xs text-muted-foreground">
+                {user.userType === UserType.CIUDADANO ? "Reportes realizados" : "Incidentes en el sistema"}
+              </p>
             </CardContent>
           </Card>
 
@@ -121,6 +140,39 @@ function DashboardContent() {
           </Card>
         </div>
 
+        {/* Info Banner */}
+        {user.userType === UserType.CIUDADANO && (
+          <div className="mb-6">
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-blue-700">
+                  <FileText className="w-4 h-4" />
+                  <p className="text-sm font-medium">
+                    Este dashboard muestra únicamente los incidentes que has reportado. 
+                    Para ver todos los incidentes del área, visita el <Link href="/map" className="underline font-semibold">mapa interactivo</Link>.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {user.userType === UserType.ENTIDAD && (
+          <div className="mb-6">
+            <Card className="border-green-200 bg-green-50/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-green-700">
+                  <Users className="w-4 h-4" />
+                  <p className="text-sm font-medium">
+                    Como entidad, puedes ver y gestionar todos los incidentes reportados en el sistema.
+                    Usa los controles para cambiar el estado de los incidentes.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="mb-8">
           <Card>
@@ -129,12 +181,14 @@ function DashboardContent() {
               <CardDescription>{t("dashboard.accessMainFunctions")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-3">
-              <Link href="/report">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  {t("dashboard.reportNewIncident")}
-                </Button>
-              </Link>
+              {user.userType === UserType.CIUDADANO && (
+                <Link href="/report">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    {t("dashboard.reportNewIncident")}
+                  </Button>
+                </Link>
+              )}
               <Link href="/map">
                 <Button variant="outline" className="border-border hover:bg-muted bg-transparent">
                   <Map className="w-4 h-4 mr-2" />
