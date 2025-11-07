@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,14 +21,21 @@ export function ProtectedRoute({
   allowedRoles = [],
   fallbackMessage,
 }: ProtectedRouteProps) {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   useEffect(() => {
-    if (requireAuth && !isAuthenticated) {
+    if (requireAuth && !isAuthenticated && !isLoading) {
+      setIsRedirecting(true)
       router.push("/login")
     }
-  }, [requireAuth, isAuthenticated, router])
+  }, [requireAuth, isAuthenticated, isLoading, router])
+
+  // Show nothing while loading or redirecting
+  if (isLoading || isRedirecting) {
+    return null
+  }
 
   // If authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
@@ -56,7 +63,7 @@ export function ProtectedRoute({
   }
 
   // If specific roles are required but user doesn't have them
-  if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
+  if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.userType)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">

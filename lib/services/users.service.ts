@@ -24,15 +24,11 @@ import {
  */
 export async function getAllUsers(): Promise<UnifiedUser[]> {
   try {
-    console.log('👥 Obteniendo todos los usuarios')
-    
     const users = await api.get<UnifiedUser[]>('/users')
-    
-    console.log(`✅ ${users.length} usuarios obtenidos`)
     
     return users
   } catch (error) {
-    console.error('❌ Error al obtener usuarios:', error)
+    console.error('Error al obtener usuarios:', error)
     throw error
   }
 }
@@ -42,15 +38,11 @@ export async function getAllUsers(): Promise<UnifiedUser[]> {
  */
 export async function getMyProfile(): Promise<UnifiedUser> {
   try {
-    console.log('👤 Obteniendo mi perfil')
-    
     const user = await api.get<UnifiedUser>('/users/me')
-    
-    console.log('✅ Perfil obtenido:', user.email)
     
     return user
   } catch (error) {
-    console.error('❌ Error al obtener perfil:', error)
+    console.error('Error al obtener perfil:', error)
     throw error
   }
 }
@@ -63,17 +55,13 @@ export async function getUserByTypeAndId(
   id: number
 ): Promise<Ciudadano | EntidadPublica | Administrador> {
   try {
-    console.log(`👤 Obteniendo usuario ${userType} #${id}`)
-    
     const user = await api.get<Ciudadano | EntidadPublica | Administrador>(
       `/users/${userType}/${id}`
     )
     
-    console.log('✅ Usuario obtenido')
-    
     return user
   } catch (error) {
-    console.error(`❌ Error al obtener usuario ${userType} #${id}:`, error)
+    console.error(`Error al obtener usuario ${userType} #${id}:`, error)
     throw error
   }
 }
@@ -83,15 +71,11 @@ export async function getUserByTypeAndId(
  */
 export async function getCiudadanos(): Promise<Ciudadano[]> {
   try {
-    console.log('👥 Obteniendo todos los ciudadanos')
-    
     const ciudadanos = await api.get<Ciudadano[]>('/users/ciudadanos')
-    
-    console.log(`✅ ${ciudadanos.length} ciudadanos obtenidos`)
     
     return ciudadanos
   } catch (error) {
-    console.error('❌ Error al obtener ciudadanos:', error)
+    console.error('Error al obtener ciudadanos:', error)
     throw error
   }
 }
@@ -101,15 +85,11 @@ export async function getCiudadanos(): Promise<Ciudadano[]> {
  */
 export async function getEntidades(): Promise<EntidadPublica[]> {
   try {
-    console.log('🏢 Obteniendo todas las entidades')
-    
     const entidades = await api.get<EntidadPublica[]>('/users/entidades')
-    
-    console.log(`✅ ${entidades.length} entidades obtenidas`)
     
     return entidades
   } catch (error) {
-    console.error('❌ Error al obtener entidades:', error)
+    console.error('Error al obtener entidades:', error)
     throw error
   }
 }
@@ -119,15 +99,11 @@ export async function getEntidades(): Promise<EntidadPublica[]> {
  */
 export async function getAdministradores(): Promise<Administrador[]> {
   try {
-    console.log('👑 Obteniendo todos los administradores')
-    
     const admins = await api.get<Administrador[]>('/users/administradores')
-    
-    console.log(`✅ ${admins.length} administradores obtenidos`)
     
     return admins
   } catch (error) {
-    console.error('❌ Error al obtener administradores:', error)
+    console.error('Error al obtener administradores:', error)
     throw error
   }
 }
@@ -142,15 +118,11 @@ export async function getAdministradores(): Promise<Administrador[]> {
  */
 export async function toggleUserStatus(userType: UserType, id: number): Promise<UnifiedUser> {
   try {
-    console.log(`🔄 Alternando estado del usuario ${userType} #${id}`)
-    
     const user = await api.patch<UnifiedUser>(`/users/${userType}/${id}/toggle-status`)
-    
-    console.log('✅ Estado del usuario actualizado:', user.activo ? 'ACTIVO' : 'INACTIVO')
     
     return user
   } catch (error) {
-    console.error(`❌ Error al alternar estado del usuario ${userType} #${id}:`, error)
+    console.error(`Error al alternar estado del usuario ${userType} #${id}:`, error)
     throw error
   }
 }

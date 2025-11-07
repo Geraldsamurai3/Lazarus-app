@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -188,7 +188,6 @@ export function IncidentForm() {
       }
 
       const incident = await incidentResponse.json()
-      console.log('Incidente creado:', incident)
 
       // PASO 2: Subir archivos multimedia (si hay)
       if (formData.evidence.length > 0) {
@@ -197,8 +196,6 @@ export function IncidentForm() {
         formData.evidence.forEach((file) => {
           formDataToSend.append('files', file)
         })
-
-        console.log(`Subiendo ${formData.evidence.length} archivo(s) al incidente #${incident.id}`)
 
         const mediaResponse = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/incident-media/upload/${incident.id}`,
@@ -220,9 +217,6 @@ export function IncidentForm() {
             description: `Incidente creado, pero hubo un error al subir ${formData.evidence.length} archivo(s)`,
             variant: "destructive",
           })
-        } else {
-          const mediaResult = await mediaResponse.json()
-          console.log('Archivos subidos:', mediaResult)
         }
       }
 
@@ -371,6 +365,7 @@ export function IncidentForm() {
                   <AlertDescription>{errors.location}</AlertDescription>
                 </Alert>
               )}
+
               <p className="text-xs text-muted-foreground">
                 Haz clic en el mapa para marcar la ubicación exacta del incidente
               </p>

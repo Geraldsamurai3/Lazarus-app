@@ -83,30 +83,30 @@ export function ProfilePage() {
 
         if (user.userType === UserType.CIUDADANO) {
           form.reset({
-            nombre: userData.nombre || "",
-            apellidos: userData.apellidos || "",
-            telefono: userData.telefono || "",
-            provincia: userData.provincia || "",
-            canton: userData.canton || "",
-            distrito: userData.distrito || "",
-            direccion: userData.direccion || "",
+            nombre: userData.nombre ?? "",
+            apellidos: userData.apellidos ?? "",
+            telefono: userData.telefono ?? "",
+            provincia: userData.provincia ?? "",
+            canton: userData.canton ?? "",
+            distrito: userData.distrito ?? "",
+            direccion: userData.direccion ?? "",
           })
         } else if (user.userType === UserType.ENTIDAD) {
           form.reset({
-            nombre_entidad: userData.nombre_entidad || "",
-            telefono_emergencia: userData.telefono_emergencia || "",
-            provincia: userData.provincia || "",
-            canton: userData.canton || "",
-            distrito: userData.distrito || "",
-            ubicacion: userData.ubicacion || "",
+            nombre_entidad: userData.nombre_entidad ?? "",
+            telefono_emergencia: userData.telefono_emergencia ?? "",
+            provincia: userData.provincia ?? "",
+            canton: userData.canton ?? "",
+            distrito: userData.distrito ?? "",
+            ubicacion: userData.ubicacion ?? "",
           })
         } else if (user.userType === UserType.ADMIN) {
           form.reset({
-            nombre: userData.nombre || "",
-            apellidos: userData.apellidos || "",
-            provincia: userData.provincia || "",
-            canton: userData.canton || "",
-            distrito: userData.distrito || "",
+            nombre: userData.nombre ?? "",
+            apellidos: userData.apellidos ?? "",
+            provincia: userData.provincia ?? "",
+            canton: userData.canton ?? "",
+            distrito: userData.distrito ?? "",
           })
         }
       } catch (error) {

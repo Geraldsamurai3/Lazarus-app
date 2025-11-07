@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useLanguage } from "@/contexts/language-context"
 import { UserType } from "@/lib/types"
-import { Menu, User, LogOut, Map, FileText, Settings, Home, Info, LogIn } from "lucide-react"
+import { Menu, User, LogOut, Map, FileText, Home, Info, LogIn } from "lucide-react"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -18,7 +18,8 @@ export function Navbar() {
   const { t } = useLanguage()
 
   const handleLogout = () => {
-    logout()
+    setIsOpen(false) // Cerrar el menú móvil si está abierto
+    logout() // Esto limpia el estado inmediatamente
     router.push("/login")
   }
 
@@ -93,12 +94,6 @@ export function Navbar() {
                     <Link href="/profile">
                       <User className="w-4 h-4 mr-2" aria-hidden="true" />
                       Mi Perfil
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild role="menuitem">
-                    <Link href="/settings">
-                      <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
-                      {t("nav.settings")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout} role="menuitem">
@@ -184,12 +179,6 @@ export function Navbar() {
                     <Button variant="ghost" className="w-full justify-start">
                       <User className="w-4 h-4 mr-2" aria-hidden="true" />
                       Mi Perfil
-                    </Button>
-                  </Link>
-                  <Link href="/settings" role="menuitem">
-                    <Button variant="ghost" className="w-full justify-start">
-                      <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
-                      {t("nav.settings")}
                     </Button>
                   </Link>
                   <Button variant="ghost" className="w-full justify-start" onClick={handleLogout} role="menuitem">
