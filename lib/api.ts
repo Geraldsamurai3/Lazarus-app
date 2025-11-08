@@ -1,12 +1,14 @@
 import { getToken, isTokenExpired, logout } from './services/auth.service'
 
 // API base URL from environment - apunta al backend NestJS
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+// Fallback a producción en Railway si no hay variable de entorno
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lazarus-web-backend-production.up.railway.app'
 
 // Log para debug en producción (temporal)
 if (typeof window !== 'undefined') {
   console.log('🌐 API_URL configurada:', API_URL)
   console.log('🔧 NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL)
+  console.log('🔧 Todas las env vars NEXT_PUBLIC:', Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC')))
 } 
 
 /**
