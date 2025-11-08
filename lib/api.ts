@@ -1,7 +1,7 @@
 import { getToken, isTokenExpired, logout } from './services/auth.service'
 
 // API base URL from environment - apunta al backend NestJS
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api' 
 
 /**
  * Generic API request function with authentication and error handling
@@ -103,9 +103,6 @@ export const api = {
     }),
   
   patch: <T = any>(endpoint: string, data?: any, options?: RequestInit) => {
-    console.log(`🔧 PATCH Request to ${endpoint}`)
-    console.log(`📦 Data being sent:`, data)
-    console.log(`📝 JSON stringified:`, JSON.stringify(data))
     return apiRequest<T>(endpoint, { 
       ...options, 
       method: 'PATCH', 
