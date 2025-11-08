@@ -1,7 +1,13 @@
 import { getToken, isTokenExpired, logout } from './services/auth.service'
 
 // API base URL from environment - apunta al backend NestJS
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api' 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+
+// Log para debug en producción (temporal)
+if (typeof window !== 'undefined') {
+  console.log('🌐 API_URL configurada:', API_URL)
+  console.log('🔧 NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL)
+} 
 
 /**
  * Generic API request function with authentication and error handling
@@ -45,10 +51,13 @@ export async function apiRequest<T = any>(
   }
 
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const fullUrl = `${API_URL}${endpoint}`
+    console.log('📡 Fetching:', fullUrl) // Log temporal para debug
+    
+    const response = await fetch(fullUrl, {
       ...options,
       headers,
-      credentials: 'include', // Important for cookies
+      // credentials: 'include', // Comentado temporalmente para permitir CORS con origin: '*'
     })
 
     // Handle unauthorized responses
