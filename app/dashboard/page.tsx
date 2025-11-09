@@ -43,7 +43,7 @@ function DashboardContent() {
   }
   // For ADMIN, show all incidents (they need to see everything)
   else {
-    dashboardTitle = "Panel de Administración"
+    dashboardTitle = "Dashboard"
     dashboardDescription = "Vista completa del sistema"
   }
   

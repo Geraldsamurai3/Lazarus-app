@@ -70,12 +70,14 @@ export function Navbar() {
                     {t("nav.map")}
                   </Button>
                 </Link>
-                <Link href="/report" role="menuitem">
-                  <Button variant="ghost" size="sm" aria-label={t("nav.report")}>
-                    <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
-                    {t("nav.report")}
-                  </Button>
-                </Link>
+                {user.userType !== UserType.ENTIDAD && (
+                  <Link href="/report" role="menuitem">
+                    <Button variant="ghost" size="sm" aria-label={t("nav.report")}>
+                      <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
+                      {t("nav.report")}
+                    </Button>
+                  </Link>
+                )}
               </>
             )}
 
@@ -169,12 +171,14 @@ export function Navbar() {
                       {t("nav.map")}
                     </Button>
                   </Link>
-                  <Link href="/report" role="menuitem">
-                    <Button variant="ghost" className="w-full justify-start">
-                      <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
-                      {t("nav.report")}
-                    </Button>
-                  </Link>
+                  {user.userType !== UserType.ENTIDAD && (
+                    <Link href="/report" role="menuitem">
+                      <Button variant="ghost" className="w-full justify-start">
+                        <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
+                        {t("nav.report")}
+                      </Button>
+                    </Link>
+                  )}
                   <Link href="/profile" role="menuitem">
                     <Button variant="ghost" className="w-full justify-start">
                       <User className="w-4 h-4 mr-2" aria-hidden="true" />

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -54,6 +55,15 @@ export function AdminStatistics() {
     refresh 
   } = useStatistics({ autoRefresh: false })
 
+  // Estado para paginación de incidentes recientes
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+  
+  // Calcular incidentes paginados
+  const totalPages = Math.ceil((recentIncidents?.length || 0) / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedIncidents = recentIncidents?.slice(startIndex, startIndex + itemsPerPage) || []
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -92,19 +102,19 @@ export function AdminStatistics() {
 
   // Preparar datos para gráficos
   const statusData = Object.entries(dashboardStats.incidentsByStatus).map(([key, value]) => ({
-    name: key.replace('_', ' '),
+    name: formatEstadoLabel(key as EstadoIncidente),
     value,
     color: getStatusColor(key as EstadoIncidente)
   }))
 
   const severityData = Object.entries(dashboardStats.incidentsBySeverity).map(([key, value]) => ({
-    name: key,
+    name: formatSeveridadLabel(key as SeveridadIncidente),
     value,
     color: getSeverityColor(key as SeveridadIncidente)
   }))
 
   const typeData = Object.entries(dashboardStats.incidentsByType).map(([key, value]) => ({
-    name: key.replace('_', ' '),
+    name: formatTipoLabel(key as TipoIncidente),
     value
   }))
 
@@ -253,18 +263,18 @@ export function AdminStatistics() {
           <Card>
             <CardHeader>
               <CardTitle>Incidentes Recientes</CardTitle>
-              <CardDescription>Últimos 10 reportes</CardDescription>
+              <CardDescription>Últimos {recentIncidents?.length || 0} reportes</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentIncidents.map((incident) => (
+                {paginatedIncidents.map((incident) => (
                   <div key={incident.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <Badge variant={getIncidentVariant(incident.estado)}>
-                        {incident.estado}
+                        {formatEstadoLabel(incident.estado)}
                       </Badge>
                       <div>
-                        <p className="font-medium">{incident.tipo.replace('_', ' ')}</p>
+                        <p className="font-medium">{formatTipoLabel(incident.tipo)}</p>
                         <p className="text-sm text-muted-foreground">
                           {incident.descripcion.substring(0, 100)}...
                         </p>
@@ -273,12 +283,37 @@ export function AdminStatistics() {
                     <div className="text-right text-sm text-muted-foreground">
                       <p>{new Date(incident.fecha_creacion).toLocaleDateString()}</p>
                       <Badge variant="outline" className={getSeverityColorClass(incident.severidad)}>
-                        {incident.severidad}
+                        {formatSeveridadLabel(incident.severidad)}
                       </Badge>
                     </div>
                   </div>
                 ))}
               </div>
+              
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-4 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -346,7 +381,7 @@ export function AdminStatistics() {
                 
                 <div>
                   <div className="flex justify-between text-sm">
-                    <span>Cancelados</span>
+                    <span>Falsos</span>
                     <span>{dashboardStats.incidentsByStatus[EstadoIncidente.CANCELADO] || 0}</span>
                   </div>
                   <Progress 
@@ -525,5 +560,55 @@ function getSeverityColorClass(severidad: SeveridadIncidente): string {
       return "text-red-600 border-red-200"
     default:
       return ""
+  }
+}
+
+// Funciones de formateo de labels
+function formatEstadoLabel(estado: EstadoIncidente): string {
+  switch (estado) {
+    case EstadoIncidente.PENDIENTE:
+      return "Pendiente"
+    case EstadoIncidente.EN_PROCESO:
+      return "En proceso"
+    case EstadoIncidente.RESUELTO:
+      return "Resuelto"
+    case EstadoIncidente.CANCELADO:
+      return "Falso"
+    default:
+      return estado
+  }
+}
+
+function formatSeveridadLabel(severidad: SeveridadIncidente): string {
+  switch (severidad) {
+    case SeveridadIncidente.BAJA:
+      return "Baja"
+    case SeveridadIncidente.MEDIA:
+      return "Media"
+    case SeveridadIncidente.ALTA:
+      return "Alta"
+    case SeveridadIncidente.CRITICA:
+      return "Crítica"
+    default:
+      return severidad
+  }
+}
+
+function formatTipoLabel(tipo: TipoIncidente): string {
+  switch (tipo) {
+    case TipoIncidente.INCENDIO:
+      return "Incendio"
+    case TipoIncidente.ACCIDENTE:
+      return "Accidente"
+    case TipoIncidente.INUNDACION:
+      return "Inundación"
+    case TipoIncidente.DESLIZAMIENTO:
+      return "Deslizamiento"
+    case TipoIncidente.TERREMOTO:
+      return "Terremoto"
+    case TipoIncidente.OTRO:
+      return "Otro"
+    default:
+      return String(tipo).replace('_', ' ')
   }
 }

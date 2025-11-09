@@ -56,7 +56,7 @@ export function AdminDashboard() {
       
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Panel de Administrador</h1>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-2">Gestión completa del sistema Lazarus</p>
         </div>
 
